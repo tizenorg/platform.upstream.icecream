@@ -33,9 +33,7 @@ PreReq:         /usr/sbin/useradd /usr/sbin/groupadd
 Requires:       gcc-c++
 Version:        0.9.7
 Release:        1
-Source0:        ftp://ftp.suse.com/pub/projects/icecream/icecc-%{version}.tar.bz2
-Source1:        %name-manpages.tar.bz2
-BuildRoot:      %{_tmppath}/%{name}-%{version}-build
+Source:        ftp://ftp.suse.com/pub/projects/icecream/icecc-%{version}.tar.bz2
 
 %description
 icecream is the next generation distcc.
@@ -51,7 +49,7 @@ Requires:       libstdc++-devel
 icecream is the next generation distcc.
 
 %prep
-%setup -q -a 1 -n icecc-%{version}
+%setup -q -n icecc-%{version}
 
 %build
 export CFLAGS="$RPM_OPT_FLAGS"
