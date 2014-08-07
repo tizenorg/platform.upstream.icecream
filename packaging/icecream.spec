@@ -25,6 +25,10 @@ License:        GPLv2+ ; LGPLv2.1+
 Group:          Development/Tools/Building
 Summary:        For Distributed Compile in the Network
 Requires:       /bin/tar /usr/bin/bzip2
+%if 0%{?suse_version}
+PreReq:         %fillup_prereq
+PreReq:         %insserv_prereq
+%endif
 PreReq:         /usr/sbin/useradd /usr/sbin/groupadd
 Requires:       gcc-c++
 Version:        0.9.7
@@ -73,6 +77,11 @@ for i in mans/*.1 mans/*.7; do
 	install -m 644 $i $RPM_BUILD_ROOT%_mandir/man`echo $i | sed -e 's,.*\(.\)$,\1,'`/`basename $i`
 done
 install -m 644 -D suse/logrotate $RPM_BUILD_ROOT/etc/logrotate.d/icecream
+%if 0%{?suse_version} > 1020
+mkdir -p $RPM_BUILD_ROOT/etc/sysconfig/SuSEfirewall2.d/services
+install -m 644 suse/SuSEfirewall.iceccd $RPM_BUILD_ROOT/etc/sysconfig/SuSEfirewall2.d/services/iceccd
+install -m 644 suse/SuSEfirewall.scheduler $RPM_BUILD_ROOT/etc/sysconfig/SuSEfirewall2.d/services/icecream-scheduler
+%endif
 
 %preun
 %stop_on_removal icecream
@@ -80,6 +89,11 @@ install -m 644 -D suse/logrotate $RPM_BUILD_ROOT/etc/logrotate.d/icecream
 %pre
 /usr/sbin/groupadd -r icecream 2> /dev/null || :
 /usr/sbin/useradd -r -g icecream -s /bin/false -c "Icecream Daemon" -d /var/cache/icecream icecream 2> /dev/null || :
+%if 0%{?suse_version}
+
+%post
+%{fillup_and_insserv -n icecream icecream}
+%endif
 
 %postun
 %restart_on_update icecream
@@ -100,6 +114,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %_sbindir/rcicecream
 %_mandir/man*/*
 /opt/icecream
+%if 0%{?suse_version} > 1020
+/etc/sysconfig/SuSEfirewall2.d/services/*
+%endif
 /var/adm/fillup-templates/sysconfig.icecream
 %attr(-,icecream,icecream) /var/cache/icecream
 
