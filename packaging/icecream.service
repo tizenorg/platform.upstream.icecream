@@ -1,0 +1,16 @@
+#
+# icecream systemd service unit file
+#
+
+[Unit]
+Description=Icecream
+
+[Service]
+Type=forking
+User=icecream
+ExecStart=/usr/libexec/start-icecream.sh
+
+[Install]
+WantedBy=multi-user.target
+
+

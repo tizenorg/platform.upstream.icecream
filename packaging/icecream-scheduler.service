@@ -1,0 +1,16 @@
+#
+# icecream systemd service unit file
+#
+
+[Unit]
+Description=Icecream
+
+[Service]
+Type=forking
+EnvironmentFile=/etc/sysconfig/icecream
+ExecStart=/usr/libexec/start-icecream-scheduler.sh
+
+[Install]
+WantedBy=multi-user.target
+
+

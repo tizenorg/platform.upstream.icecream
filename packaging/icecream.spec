@@ -24,12 +24,8 @@ BuildRequires:  gcc-c++
 License:        GPLv2+ ; LGPLv2.1+
 Group:          Development/Tools/Building
 Summary:        For Distributed Compile in the Network
-Requires:       /bin/tar /usr/bin/bzip2
-%if 0%{?suse_version}
-PreReq:         %fillup_prereq
-PreReq:         %insserv_prereq
-%endif
-PreReq:         /usr/sbin/useradd /usr/sbin/groupadd
+Requires:       tar bzip2
+Requires:       pwdutils
 Requires:       gcc-c++
 Version:        0.9.7
 Release:        1
@@ -59,45 +55,44 @@ make %{?jobs:-j %jobs}
 
 %install
 make DESTDIR=$RPM_BUILD_ROOT install
-mkdir -p $RPM_BUILD_ROOT/opt/icecream/bin
+mkdir -p %{buildroot}%_libdir/icecc/bin
 for i in g++ gcc cc c++; do 
-  ln -s /usr/bin/icecc $RPM_BUILD_ROOT/opt/icecream/bin/$i
+  ln -s /usr/bin/icecc %{buildroot}%_libdir/icecc/bin/$i
   rm -f $RPM_BUILD_ROOT/usr/bin/$i
 done
 #
 # Install icecream init script
-mkdir -p $RPM_BUILD_ROOT/etc/init.d/
-install -m 755 suse/init.icecream $RPM_BUILD_ROOT/etc/init.d/icecream
-ln -sf /etc/init.d/icecream $RPM_BUILD_ROOT%{_sbindir}/rcicecream
-mkdir -p $RPM_BUILD_ROOT/var/adm/fillup-templates
-install -m 644 suse/sysconfig.icecream $RPM_BUILD_ROOT/var/adm/fillup-templates/sysconfig.icecream
+mkdir -p %{buildroot}%{_unitdir}/network.target.wants
+install -m 644 packaging/icecream.service %{buildroot}%{_unitdir}/icecream.service
+ln -s ../icecream.service %{buildroot}%{_unitdir}/network.target.wants/icecream.service
+%install_service multi-user.target.wants icecream.service
+mkdir -p %{buildroot}/usr/libexec
+install packaging/start-icecream.sh %{buildroot}/usr/libexec/
+
+install -m 644 packaging/icecream-scheduler.service %{buildroot}%{_unitdir}/icecream-scheduler.service
+ln -s ../icecream-scheduler.service %{buildroot}%{_unitdir}/network.target.wants/icecream-scheduler.service
+install packaging/start-icecream-scheduler.sh %{buildroot}/usr/libexec/
+
+# Install config
+mkdir -p %{buildroot}/etc/sysconfig
+install -m 644 packaging/icecream %{buildroot}/etc/sysconfig/
+
+
 mkdir -p $RPM_BUILD_ROOT/var/cache/icecream
 mkdir -p $RPM_BUILD_ROOT%_mandir/man{1,7}
 for i in mans/*.1 mans/*.7; do
 	install -m 644 $i $RPM_BUILD_ROOT%_mandir/man`echo $i | sed -e 's,.*\(.\)$,\1,'`/`basename $i`
 done
 install -m 644 -D suse/logrotate $RPM_BUILD_ROOT/etc/logrotate.d/icecream
-%if 0%{?suse_version} > 1020
-mkdir -p $RPM_BUILD_ROOT/etc/sysconfig/SuSEfirewall2.d/services
-install -m 644 suse/SuSEfirewall.iceccd $RPM_BUILD_ROOT/etc/sysconfig/SuSEfirewall2.d/services/iceccd
-install -m 644 suse/SuSEfirewall.scheduler $RPM_BUILD_ROOT/etc/sysconfig/SuSEfirewall2.d/services/icecream-scheduler
-%endif
-
-%preun
-%stop_on_removal icecream
 
 %pre
 /usr/sbin/groupadd -r icecream 2> /dev/null || :
 /usr/sbin/useradd -r -g icecream -s /bin/false -c "Icecream Daemon" -d /var/cache/icecream icecream 2> /dev/null || :
-%if 0%{?suse_version}
 
 %post
-%{fillup_and_insserv -n icecream icecream}
-%endif
+systemctl start icecream
 
 %postun
-%restart_on_update icecream
-%{insserv_cleanup}
 
 %clean
 rm -rf ${RPM_BUILD_ROOT}
@@ -105,20 +100,21 @@ rm -rf ${RPM_BUILD_ROOT}
 %files
 %defattr(-,root,root)
 %config /etc/logrotate.d/icecream
-%config /etc/init.d/icecream
+%config /etc/sysconfig/icecream
+%{_unitdir}/icecream.service
+%{_unitdir}/icecream-scheduler.service
+%{_unitdir}/network.target.wants/icecream.service
+%{_unitdir}/multi-user.target.wants/icecream.service
+%{_unitdir}/network.target.wants/icecream-scheduler.service
+/usr/libexec/start-icecream.sh
+/usr/libexec/start-icecream-scheduler.sh
 %_bindir/icecc
 %_bindir/icerun
 %_sbindir/scheduler
-%_libdir/icecc
+%_libdir/icecc*/*
 %_sbindir/iceccd
-%_sbindir/rcicecream
 %_mandir/man*/*
-/opt/icecream
-%if 0%{?suse_version} > 1020
-/etc/sysconfig/SuSEfirewall2.d/services/*
-%endif
-/var/adm/fillup-templates/sysconfig.icecream
-%attr(-,icecream,icecream) /var/cache/icecream
+%attr(-,icecream, icecream) /var/cache/icecream
 
 %files -n libicecream-devel
 %defattr(-,root,root)
