@@ -18,6 +18,10 @@
 # norootforbuild
 # icecream 0
 
+%ifarch %{ix86}
+%define __os_install_post %{nil}
+%define nodebug 1
+%endif
 
 Name:           icecream
 BuildRequires:  gcc-c++
