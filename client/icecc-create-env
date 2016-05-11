@@ -95,9 +95,17 @@ if ! test -x "$added_gxx" ; then
   exit 1
 fi
 
+# Tizen
+added_as=/usr/bin/as
+if test -n /emul/$added_gcc && test -n /emul/$added_gxx && test -n /emul/$added_as ; then
+  added_gcc=/emul/$added_gcc
+  added_gxx=/emul/$added_gxx
+  added_as=/emul/$added_as
+fi
+
 add_file $added_gcc /usr/bin/gcc
 add_file $added_gxx /usr/bin/g++
-add_file /usr/bin/as
+add_file $added_as /usr/bin/as
 
 if test "$is_darwin" = 1; then
     # add dynamic linker
