@@ -29,7 +29,6 @@ Requires:       /bin/tar /usr/bin/bzip2
 PreReq:         %fillup_prereq
 PreReq:         %insserv_prereq
 %endif
-PreReq:         /usr/sbin/useradd /usr/sbin/groupadd
 Requires:       gcc-c++
 Version:        0.9.7
 Release:        1
